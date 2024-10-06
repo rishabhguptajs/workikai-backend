@@ -3,6 +3,7 @@ import cors from 'cors'
 import dotenv from "dotenv";
 import connectDB from "./config.js";
 import authRoutes from "./routes/authRoutes.js";
+import webhookRoutes from "./routes/webhookRoutes.js";
 
 const app = express();
 
@@ -16,6 +17,7 @@ app.get('/', (req, res) => {
 })
 
 app.use('/auth', authRoutes);
+app.use('/webhook', webhookRoutes);
 
 const PORT = process.env.PORT || 8080;
 
