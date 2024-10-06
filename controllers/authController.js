@@ -26,15 +26,13 @@ export const githubAuthCallback = async (req, res) => {
             return res.status(400).json({ error: "Failed to get access token" })
         }
 
-        const user = await User.findOneAndUpdate(
-            { githubAccessToken: access_token },
-            { githubAccessToken: access_token },
-            { new: true, upsert: true }
-        )
+        const user = new User({ access_token });
+
+        await user.save();
 
         return res.status(200).json({ token: access_token, user })
     } catch (error) {
         console.error(error)
-        res.status(500).json({ error: "Server error" })
+        res.status(500).json({ error: "Server error", message: error.message })
     }
 }
