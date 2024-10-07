@@ -5,6 +5,7 @@ import { reviewPR } from "../services/aiService.js";
 export const githubWebhookHandler = async (req, res) => {
     try {
         const payload = req.body;
+        console.log(payload)
         const signature = req.headers['x-hub-signature-256'];
 
         const hmac = crypto.createHmac('sha256', process.env.GITHUB_WEBHOOK_SECRET);
