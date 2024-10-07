@@ -69,5 +69,8 @@ const postCommentOnPR = async (owner, repo, prNumber, review, token) => {
     };
 
     const response = await axios.post(url, data, { headers: headers });
+
+    console.log(response.data);
+
     return response.data;
 }
