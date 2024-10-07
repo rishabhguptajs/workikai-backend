@@ -25,7 +25,9 @@ export const githubWebhookHandler = async (req, res) => {
             await axios.post(
                 `https://api.github.com/repos/${owner}/${repo}/pulls/${payload.pull_request.number}/comments`,
                 {
-                    body: review.choices[0].message.content
+                    body: review.choices[0].message.content,
+                    commit_id: payload.pull_request.head.sha,
+                    path: review.choices[0].message,
                 },
                 {
                     headers: {
