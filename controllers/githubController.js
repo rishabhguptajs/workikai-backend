@@ -22,23 +22,17 @@ export const githubWebhookHandler = async (req, res) => {
 
             const review = await reviewPR(prData);
             const token = await generateJWT();
-            await axios.post(
-                `https://api.github.com/repos/${owner}/${repo}/pulls/${payload.pull_request.number}/comments`,
-                {
-                    body: review.choices[0].message.content,
-                    commit_id: payload.pull_request.head.sha,
-                    path: review.choices[0].message,
-                },
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                        Accept: "application/vnd.github.v3+json"
-                    }
-                }
-            );
+            
+            const postComment = await postCommentOnPR(owner, repo, payload.pull_request.number, review, token);
+
+            if (postComment.error) {
+                return res.status(500).json({ error: "Error posting PR review comment", message: postComment.error });
+            } else {
+                return res.status(200).json({ message: "PR review comment posted successfully.", data: postComment });
+            }
         }
 
-        return res.status(200).json({ message: "PR review comment posted successfully." });
+        return res.status(200).json({ message: "PR review comment posted successfully.", data: payload });
 
     } catch (error) {
         console.error(error);
@@ -61,3 +55,19 @@ const generateJWT = () => {
         { algorithm: 'RS256' }
     );
 };
+
+const postCommentOnPR = async (owner, repo, prNumber, review, token) => {
+    const url = `https://api.github.com/repos/${owner}/${repo}/issues/${prNumber}/comments`;
+
+    const headers = {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/vnd.github.v3+json'
+    };
+
+    const data = {
+        body: review
+    };
+
+    const response = await axios.post(url, data, { headers: headers });
+    return response.data;
+}
