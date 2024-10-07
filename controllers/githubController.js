@@ -1,11 +1,14 @@
 import axios from "axios";
 import crypto from 'crypto';
+import fs from 'fs'
+import path from 'path'
+import jwt from 'jsonwebtoken'
+import { fileURLToPath } from 'url'
 import { reviewPR } from "../services/aiService.js";
 
 export const githubWebhookHandler = async (req, res) => {
     try {
         const payload = req.body;
-        console.log(payload)
         const signature = req.headers['x-hub-signature-256'];
 
         const hmac = crypto.createHmac('sha256', process.env.GITHUB_WEBHOOK_SECRET);
@@ -26,13 +29,12 @@ export const githubWebhookHandler = async (req, res) => {
             };
 
             const review = await reviewPR(prData);
-
             const token = await generateJWT();
 
             await axios.post(
                 `https://api.github.com/repos/${owner}/${repo}/pulls/${payload.pull_request.number}/comments`,
                 {
-                    body: review.choices[0].message[0].content
+                    body: review.choices[0].message.content
                 },
                 {
                     headers: {
@@ -47,6 +49,9 @@ export const githubWebhookHandler = async (req, res) => {
         return res.status(500).json({ error: "Server error", message: error });
     }
 };
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const generateJWT = () => {
     const privateKey = fs.readFileSync(path.join(__dirname, 'workikai.2024-10-06.private-key.pem'));
