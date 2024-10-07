@@ -7,6 +7,7 @@ import { fileURLToPath } from 'url'
 import { reviewPR } from "../services/aiService.js";
 
 export const githubWebhookHandler = async (req, res) => {
+export const githubWebhookHandler = async (req, res) => {
     try {
         const payload = req.body;
         const signature = req.headers['x-hub-signature-256'];
@@ -15,9 +16,14 @@ export const githubWebhookHandler = async (req, res) => {
         const digest = Buffer.from('sha256=' + hmac.update(JSON.stringify(payload)).digest('hex'), 'utf8');
 
         if (signature !== digest.toString('utf8')) {
+        if (signature !== digest.toString('utf8')) {
             return res.status(401).json({ error: "Invalid signature" });
         }
 
+        const owner = payload.repository.owner.login;
+        const repo = payload.repository.name;
+
+        if (payload.action === 'opened') {
         const owner = payload.repository.owner.login;
         const repo = payload.repository.name;
 
